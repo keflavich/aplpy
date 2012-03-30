@@ -86,7 +86,7 @@ class ColorSliders(Widget):
                 sl.ax.remove()
         except NotImplementedError:
             for sl in self.sliders:
-                self.aplpyfigure.figure.delaxes(sl.ax)
+                self.toolfig.delaxes(sl.ax)
 
     def set_sliders(self):
         if self.aplpyfigure.image:
@@ -133,5 +133,8 @@ class ColorSliders(Widget):
             if slmid is not None: slmid.on_changed(update)
             slmax.on_changed(update)
 
-            self.aplpyfigure.sliders = [slmin,slmid,slmax]
+            if slmid is None:
+                self.sliders = [slmin,slmax]
+            else:
+                self.sliders = [slmin,slmid,slmax]
 

@@ -1863,3 +1863,5 @@ class FITSFigure(Layers, Regions, Deprecated):
         """
         if hasattr(self,'Sliders'):
             self.Sliders.clear_sliders()
+            mpl.close(self.Sliders.toolfig.number)
+
