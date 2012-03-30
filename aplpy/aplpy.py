@@ -159,6 +159,12 @@ class FITSFigure(Layers, Regions, Deprecated):
                 plotting method is called. This can also be set using the
                 set_auto_refresh method.
 
+            *userwcs*: [ True | False ]
+                Is the wcs of the .fits file a standard world coordinate, or is
+                it a user-defined coordinate system?  e.g., a .fits file
+                containing models computed in column density - temperature
+                phase space
+
         Any additional arguments are passed on to matplotlib's Figure() class.
         For example, to set the figure size, use the figsize=(xsize, ysize)
         argument (where xsize and ysize are in inches). For more information
@@ -271,11 +277,11 @@ class FITSFigure(Layers, Regions, Deprecated):
         self._initialize_view()
 
         # Initialize ticks
-        self.ticks = Ticks(self)
+        self.ticks = Ticks(self,userwcs=userwcs)
 
         # Initialize labels
-        self.axis_labels = AxisLabels(self)
-        self.tick_labels = TickLabels(self)
+        self.axis_labels = AxisLabels(self,userwcs=userwcs)
+        self.tick_labels = TickLabels(self,userwcs=userwcs)
 
         self.frame = Frame(self)
 
@@ -1631,7 +1637,7 @@ class FITSFigure(Layers, Regions, Deprecated):
         if hasattr(self, 'grid'):
             raise Exception("Grid already exists")
         try:
-            self.grid = Grid(self)
+            self.grid = Grid(self,userwcs=self.userwcs)
             self.grid.show(*args, **kwargs)
         except:
             del self.grid
@@ -1776,3 +1782,22 @@ class FITSFigure(Layers, Regions, Deprecated):
         Close the figure and free up the memory
         '''
         mpl.close(self._figure)
+
+    @auto_refresh
+    def add_sliders(self):
+        """
+        Create a slider widget window
+        """
+        import widgets
+
+        self.Sliders = widgets.ColorSliders(self._figure, aplpyfigure=self)
+
+    @auto_refresh
+    def remove_sliders(self):
+        """
+        Get rid of the sliders
+        """
+        if hasattr(self,'Sliders'):
+            self.Sliders.clear_sliders()
+            mpl.close(self.Sliders.toolfig.number)
+
