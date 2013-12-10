@@ -694,10 +694,13 @@ class FITSFigure(Layers, Regions, Deprecated):
                                                        smooth=smooth,
                                                        kernel=kernel))
         else:
-            self.image = self._ax1.imshow(
-                convolve_util.convolve(self._data, smooth=smooth, kernel=kernel),
-                cmap=cmap, interpolation=interpolation, origin='lower',
-                extent=self._extent, norm=normalizer, aspect=aspect)
+            self.image = self._ax1.imshow(convolve_util.convolve(self._data,
+                                                                 smooth=smooth,
+                                                                 kernel=kernel),
+                                          cmap=cmap,
+                                          interpolation=interpolation,
+                                          origin='lower', extent=self._extent,
+                                          norm=normalizer, aspect=aspect)
 
         xmin, xmax = self._ax1.get_xbound()
         if xmin == 0.0:
@@ -730,7 +733,7 @@ class FITSFigure(Layers, Regions, Deprecated):
         self.image.set_cmap(cm)
 
     @auto_refresh
-    def show_rgb(self, filename=None, interpolation='nearest', vertical_flip=False, horizontal_flip=False, flip=False):
+    def show_rgb(self, filename=None, wcs=None, interpolation='nearest', vertical_flip=False, horizontal_flip=False, flip=False):
         '''
         Show a 3-color image instead of the FITS file data.
 
@@ -742,6 +745,10 @@ class FITSFigure(Layers, Regions, Deprecated):
             as the FITS file, and will be shown with exactly the same
             projection. If FITSFigure was initialized with an
             AVM-tagged RGB image, the filename is not needed here.
+
+        wcs: optional
+            A world coordinate system for the RGB image.  If None, assumes the
+            same WCS as the input file
 
         vertical_flip : str, optional
             Whether to vertically flip the RGB image
@@ -778,11 +785,23 @@ class FITSFigure(Layers, Regions, Deprecated):
         if horizontal_flip:
             image = image.transpose(Image.FLIP_LEFT_RIGHT)
 
-        # Elsewhere in APLpy we assume that we are using origin='lower' so here
-        # we flip the image by default (since RGB images usually would require
-        # origin='upper') then we use origin='lower'
-        image = image.transpose(Image.FLIP_TOP_BOTTOM)
-        self.image = self._ax1.imshow(image, extent=self._extent, interpolation=interpolation, origin='lower')
+        if wcs:
+            #x,y = np.meshgrid(np.arange(image.size[0]),np.arange(image.size[1]))
+            #l,b = wcs.wcs_pix2world(zip(x.flat,y.flat),0).T
+            #x,y = self._wcs.wcs_world2pix(zip(l,b),0).T
+            corners = (0.5, 0.5),(image.size[0]+0.5,  image.size[1]+0.5)
+            lbcorners = wcs.wcs_pix2world(corners,1)
+            xycorners = self._wcs.wcs_world2pix(lbcorners,0)
+            extent = xycorners.T.ravel()
+            # pcolormesh doesn't support rgb (yet?) https://github.com/matplotlib/matplotlib/issues/1317
+            # self._ax1.pcolormesh(x.reshape(image.size),y.reshape(image.size),np.array(image))
+            self.image = self._ax1.imshow(image, extent=extent, interpolation=interpolation, origin='upper')
+        else:
+            # Elsewhere in APLpy we assume that we are using origin='lower' so here
+            # we flip the image by default (since RGB images usually would require
+            # origin='upper') then we use origin='lower'
+            image = image.transpose(Image.FLIP_TOP_BOTTOM)
+            self.image = self._ax1.imshow(image, extent=self._extent, interpolation=interpolation, origin='lower')
 
     @auto_refresh
     def adjust_hsv(self, hue=0, saturation=0, value=0):
