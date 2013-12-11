@@ -795,7 +795,7 @@ class FITSFigure(Layers, Regions, Deprecated):
             extent = xycorners.T.ravel()
             # pcolormesh doesn't support rgb (yet?) https://github.com/matplotlib/matplotlib/issues/1317
             # self._ax1.pcolormesh(x.reshape(image.size),y.reshape(image.size),np.array(image))
-            self.image = self._ax1.imshow(image, extent=extent, interpolation=interpolation, origin='upper')
+            self.rgb_image = self._ax1.imshow(image, extent=extent, interpolation=interpolation, origin='upper')
         else:
             # Elsewhere in APLpy we assume that we are using origin='lower' so here
             # we flip the image by default (since RGB images usually would require
