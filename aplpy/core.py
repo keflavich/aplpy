@@ -65,7 +65,7 @@ class FITSFigure(Layers, Regions, Deprecated):
     def __init__(self, data, hdu=0, figure=None, subplot=(1, 1, 1),
                  downsample=False, north=False, convention=None,
                  dimensions=[0, 1], slices=[], auto_refresh=None,
-                 **kwargs):
+                 xmp_packet_index=0, **kwargs):
         '''
         Create a FITSFigure instance.
 
@@ -134,6 +134,10 @@ class FITSFigure(Layers, Regions, Deprecated):
             APLpy is being used from IPython and the Matplotlib backend is
             interactive.
 
+        xmp_packet_index : int, optional
+            The index of the XMP packet containing the spatial AVM if the image
+            has it
+
         kwargs
             Any additional arguments are passed on to matplotlib's Figure() class.
             For example, to set the figure size, use the figsize=(xsize, ysize)
@@ -177,7 +181,7 @@ class FITSFigure(Layers, Regions, Deprecated):
             nx, ny = Image.open(data).size
 
             # Now convert AVM information to WCS
-            data = AVM.from_image(data).to_wcs()
+            data = AVM.from_image(data,xmp_packet_index=xmp_packet_index).to_wcs()
 
             # Need to scale CDELT values sometimes the AVM meta-data is only really valid for the full-resolution image
             data.wcs.cdelt = [data.wcs.cdelt[0] * nx / float(nx), data.wcs.cdelt[1] * ny / float(ny)]
