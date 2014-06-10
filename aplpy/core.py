@@ -796,16 +796,25 @@ class FITSFigure(Layers, Regions, Deprecated):
             corners = (0.5, 0.5),(image.size[0]+0.5,  image.size[1]+0.5)
             lbcorners = wcs.wcs_pix2world(corners,1)
             xycorners = self._wcs.wcs_world2pix(lbcorners[:,0], lbcorners[:,1], 0)
-            extent = np.array(xycorners).T.ravel()
+            (l,r),(b,t) = xycorners
+            if r < l:
+                l,r = r,l
+            if t < b:
+                t,b = b,t
+            extent = [l,r,b,t]
             # pcolormesh doesn't support rgb (yet?) https://github.com/matplotlib/matplotlib/issues/1317
             # self._ax1.pcolormesh(x.reshape(image.size),y.reshape(image.size),np.array(image))
-            self.rgb_image = self._ax1.imshow(image, extent=extent, interpolation=interpolation, origin='upper')
+            self.rgb_image = self._ax1.imshow(image, extent=extent,
+                                              interpolation=interpolation,
+                                              origin='upper')
         else:
             # Elsewhere in APLpy we assume that we are using origin='lower' so here
             # we flip the image by default (since RGB images usually would require
             # origin='upper') then we use origin='lower'
             image = image.transpose(Image.FLIP_TOP_BOTTOM)
-            self.image = self._ax1.imshow(image, extent=self._extent, interpolation=interpolation, origin='lower')
+            self.image = self._ax1.imshow(image, extent=self._extent,
+                                          interpolation=interpolation,
+                                          origin='lower')
 
     @auto_refresh
     def show_contour(self, data=None, hdu=0, layer=None, levels=5, filled=False, cmap=None, colors=None, returnlevels=False, convention=None, dimensions=[0, 1], slices=[], smooth=None, kernel='gauss', overlap=False, **kwargs):
