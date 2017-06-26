@@ -32,6 +32,11 @@ class WCS(AstropyWCS):
 
         AstropyWCS.__init__(self, *args, **kwargs)
 
+        # Need a non-overloaded version of this for calls that loop into self
+        # (e.g., all_world2pix calls wcs_world2pix, but the call format used
+        # in this class is not compatible with the style used in astropy!)
+        self._base_wcs = AstropyWCS(*args, **kwargs)
+
         # Fix common non-standard units
         self.wcs.unitfix()
 
@@ -56,7 +61,7 @@ class WCS(AstropyWCS):
                     coords.append(np.repeat(self._slices[s], xpix.shape))
                     s += 1
             coords = np.vstack(coords).transpose()
-            result = AstropyWCS.all_pix2world(self, coords, 1)
+            result = self._base_wcs.all_pix2world(coords, 1)
             self._mean_world = np.mean(result, axis=0)
             # result = result.transpose()
             # result = result.reshape((result.shape[0],) + (self.ny, self.nx))
@@ -152,10 +157,10 @@ class WCS(AstropyWCS):
     def wcs_world2pix(self, x, y, origin):
         if self.naxis == 2:
             if self._dimensions[1] < self._dimensions[0]:
-                xp, yp = AstropyWCS.all_world2pix(self, y, x, origin)
+                xp, yp = self._base_wcs.all_world2pix(y, x, origin)
                 return yp, xp
             else:
-                return AstropyWCS.all_world2pix(self, x, y, origin)
+                return self._base_wcs.all_world2pix(x, y, origin)
         else:
             coords = []
             s = 0
@@ -175,17 +180,17 @@ class WCS(AstropyWCS):
             # result = AstropyWCS.wcs_world2pix(self, coords, origin)
             result = np.zeros(coords.shape)
             for i in range(result.shape[0]):
-                result[i:i + 1, :] = AstropyWCS.all_world2pix(self, coords[i:i + 1, :], origin)
+                result[i:i + 1, :] = self._base_wcs.all_world2pix(coords[i:i + 1, :], origin)
 
             return result[:, self._dimensions[0]], result[:, self._dimensions[1]]
 
     def wcs_pix2world(self, x, y, origin):
         if self.naxis == 2:
             if self._dimensions[1] < self._dimensions[0]:
-                xw, yw = AstropyWCS.all_pix2world(self, y, x, origin)
+                xw, yw = self._base_wcs.all_pix2world(y, x, origin)
                 return yw, xw
             else:
-                return AstropyWCS.all_pix2world(self, x, y, origin)
+                return self._base_wcs.all_pix2world(x, y, origin)
         else:
             coords = []
             s = 0
@@ -198,7 +203,7 @@ class WCS(AstropyWCS):
                     coords.append(np.repeat(self._slices[s] + 0.5, x.shape))
                     s += 1
             coords = np.vstack(coords).transpose()
-            result = AstropyWCS.all_pix2world(self, coords, origin)
+            result = self._base_wcs.all_pix2world(coords, origin)
             return result[:, self._dimensions[0]], result[:, self._dimensions[1]]
 
 
