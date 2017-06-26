@@ -143,6 +143,9 @@ class WCS(AstropyWCS):
         else:
             raise AttributeError("Attribute %s does not exist" % attribute)
 
+    def all_world2pix(self, x, y, origin):
+        return self.wcs_world2pix(x, y, origin)
+
     def wcs_world2pix(self, x, y, origin):
         if self.naxis == 2:
             if self._dimensions[1] < self._dimensions[0]:
