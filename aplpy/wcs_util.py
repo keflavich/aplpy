@@ -146,6 +146,9 @@ class WCS(AstropyWCS):
     def all_world2pix(self, x, y, origin):
         return self.wcs_world2pix(x, y, origin)
 
+    def all_pix2world(self, x, y, origin):
+        return self.wcs_pix2world(x, y, origin)
+
     def wcs_world2pix(self, x, y, origin):
         if self.naxis == 2:
             if self._dimensions[1] < self._dimensions[0]:
